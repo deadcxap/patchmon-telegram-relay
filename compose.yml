@@ -1,0 +1,14 @@
+services:
+  patchmon_telegram_relay:
+    build: .
+    container_name: patchmon_telegram_relay
+    restart: always
+    env_file: .env
+    networks:
+      - net
+
+networks:
+  # Name must match the internal network of your Patchmon stack.
+  net:
+    name: ${PATCHMON_NETWORK}
+    external: true
