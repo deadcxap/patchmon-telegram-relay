@@ -94,6 +94,24 @@ Then create a **Route** that links the destination to the alert types you want d
 
 Severity levels map to emojis: 🔴 critical · 🟠 error · 🟡 warning · 🔵 info. Unknown payloads are forwarded as a raw JSON dump.
 
+### Scheduled reports
+
+Weekly and other scheduled PatchMon reports are recognized by a string `csv` field with the header `section,metric,value`. They use the same webhook URL and chat/topic configuration as alerts.
+
+Reports are formatted in Russian and include:
+
+- The report title from `report_name`, `title`, the first `<h1>` in `html`, or `subject`, in that order; the default is `Отчёт PatchMon`.
+- Executive summary values and patch run status counts exactly as reported by PatchMon.
+- Open alert totals and severity counts, ahead of the host list so they remain visible in long reports.
+- Host update counts: `hosts_by_updates,example.org,14|3` becomes `• example.org: 14 (🔒 безопасность: 3)`. Host names are preserved, including leading digits.
+- Other CSV sections as lists of their metric/value pairs.
+
+The `total|security` host counts follow [PatchMon's report CSV format](https://github.com/PatchMon/PatchMon/blob/main/server-source-code/internal/notifications/report_render.go). A missing host section does not imply that every host is up to date. Summary values are not recalculated from the host list, which PatchMon may limit to its top hosts.
+
+Malformed rows are skipped with an incomplete-report notice; a CSV parsing error stops reading the remaining rows. Empty reports show a no-data notice. Invalid headers and non-string `csv` fields retain the existing notification/JSON fallback.
+
+The email HTML is used only to extract the title. All report text is escaped for Telegram. Long reports are shortened to at most 4,000 UTF-16 units with `… Отчёт сокращён.`; titles are limited to 256 units. This stays below Telegram's [sendMessage limit](https://core.telegram.org/bots/api#sendmessage) without cutting formatting tags or HTML entities.
+
 ## Updating
 
 Pull the latest image and recreate the container:
@@ -103,6 +121,23 @@ docker compose up -d
 ```
 
 Publishing a new image does not update running containers automatically; run these commands on each Docker host when you want to update.
+
+To build and run changes from a local checkout using this fork's configured image name:
+
+```bash
+docker build -t ghcr.io/deadcxap/patchmon-telegram-relay:latest .
+docker compose up -d --force-recreate --pull never
+```
+
+## Tests
+
+Using Python 3.12 with `flask` and `requests` installed:
+
+```bash
+python -m unittest -v
+```
+
+The tests cover report formatting, malformed and quoted CSV, HTML escaping, long messages, existing alerts, and both webhook routes with and without a forum topic. Telegram requests are mocked; tests do not send messages or require real credentials.
 
 ## GitHub Actions setup
 
