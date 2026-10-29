@@ -1,6 +1,6 @@
 services:
   patchmon_telegram_relay:
-    build: .
+    image: ghcr.io/deadcxap/patchmon-telegram-relay:latest
     container_name: patchmon_telegram_relay
     restart: always
     env_file: .env
