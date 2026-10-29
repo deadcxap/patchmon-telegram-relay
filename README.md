@@ -1,5 +1,7 @@
 # patchmon-telegram-relay
 
+[Русская документация](README.ru.md)
+
 A minimal webhook relay that forwards [PatchMon](https://github.com/PatchMon/PatchMon) notifications to a Telegram chat.
 
 PatchMon's webhook destination sends its own JSON payload. This relay receives it, formats a human-readable message, and calls the Telegram Bot API.
