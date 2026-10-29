@@ -7,6 +7,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s %(message)s')
 
 TOKEN   = os.environ['TELEGRAM_TOKEN']
 CHAT_ID = os.environ['TELEGRAM_CHAT_ID']
+THREAD_ID = os.getenv('TELEGRAM_THREAD_ID', '').strip()
+try:
+    THREAD_ID = int(THREAD_ID) if THREAD_ID else None
+    if THREAD_ID is not None and THREAD_ID <= 0:
+        raise ValueError
+except ValueError:
+    raise ValueError('TELEGRAM_THREAD_ID must be a positive integer or empty') from None
 TG_URL  = f'https://api.telegram.org/bot{TOKEN}/sendMessage'
 
 SEVERITY_EMOJI = {
@@ -53,9 +60,12 @@ def format_message(data):
 def webhook():
     data = request.get_json(force=True, silent=True) or {}
     text = format_message(data)
-    resp = requests.post(TG_URL, json={
+    payload = {
         'chat_id': CHAT_ID, 'text': text, 'parse_mode': 'HTML'
-    }, timeout=10)
+    }
+    if THREAD_ID is not None:
+        payload['message_thread_id'] = THREAD_ID
+    resp = requests.post(TG_URL, json=payload, timeout=10)
     logging.info('telegram response: %s %s', resp.status_code, resp.text[:200])
     return jsonify({'ok': resp.ok}), 200
 

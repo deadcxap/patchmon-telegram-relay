@@ -32,6 +32,16 @@ Each build pulls the current base image and reinstalls the Python dependencies w
    ```
 3. The `chat.id` field in the response is your chat ID.
 
+### Selecting a forum topic (optional)
+
+1. Add the bot to your Telegram forum group and allow it to send messages.
+2. Send a command addressed to the bot, such as `/start@YourBotUsername`, inside the desired topic.
+3. Fetch `getUpdates` as above. In the matching update, use `message.chat.id` as `TELEGRAM_CHAT_ID` and `message.message_thread_id` as `TELEGRAM_THREAD_ID`.
+
+For example, `TELEGRAM_THREAD_ID=123` sends all notifications to topic `123` in the configured group. The relay passes this value as [`message_thread_id` to Telegram's `sendMessage` method](https://core.telegram.org/bots/api#sendmessage).
+
+Leave `TELEGRAM_THREAD_ID` unset or empty to keep the existing behavior without a topic ID. If set, it must be a positive integer; an invalid value stops the relay at startup with a configuration error.
+
 ## Setup
 
 ```bash
@@ -44,6 +54,7 @@ Edit `.env`:
 ```
 TELEGRAM_TOKEN=<your-bot-token>
 TELEGRAM_CHAT_ID=<your-chat-id>
+TELEGRAM_THREAD_ID=
 PATCHMON_NETWORK=<patchmon-internal-docker-network-name>
 ```
 
